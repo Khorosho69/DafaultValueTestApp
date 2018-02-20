@@ -45,5 +45,4 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
             mCheckBox = v.findViewById(R.id.appItemCheckBox);
         }
     }
-
 }
