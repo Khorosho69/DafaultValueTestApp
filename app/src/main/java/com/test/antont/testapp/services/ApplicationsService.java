@@ -1,11 +1,10 @@
-package com.test.antont.testapp.servises;
+package com.test.antont.testapp.services;
 
 
 import android.app.IntentService;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
-import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -59,10 +58,10 @@ public class ApplicationsService extends IntentService {
     }
 
     private List<AppItem> getInstalledApps() {
-
         List<AppItem> appItemsFromDB = mDBHelper.readAllAppItems(mDatabase);
+        List<AppItem> actualItems = getActualAppItems();
 
-        if (appItemsFromDB == null || appItemsFromDB.size() == 0) {
+        if (appItemsFromDB == null || appItemsFromDB.size() == 0 || !appItemsFromDB.equals(actualItems)) {
             appItemsFromDB = getActualAppItems();
             mDBHelper.writeAllAppItems(mDatabase, appItemsFromDB);
 
@@ -88,6 +87,4 @@ public class ApplicationsService extends IntentService {
     private boolean isSystemPackage(PackageInfo pkgInfo) {
         return (pkgInfo.applicationInfo.flags & ApplicationInfo.FLAG_SYSTEM) != 0;
     }
-
-
 }

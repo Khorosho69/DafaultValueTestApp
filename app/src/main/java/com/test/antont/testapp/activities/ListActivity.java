@@ -15,7 +15,7 @@ import com.test.antont.testapp.adapters.RecyclerViewAdapter;
 import com.test.antont.testapp.enums.ActionType;
 import com.test.antont.testapp.models.AppItem;
 import com.test.antont.testapp.receivers.ApplicationsReceiver;
-import com.test.antont.testapp.servises.ApplicationsService;
+import com.test.antont.testapp.services.ApplicationsService;
 
 import java.util.ArrayList;
 import java.util.List;

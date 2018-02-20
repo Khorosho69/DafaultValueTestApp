@@ -17,6 +17,17 @@ public class DBHelper extends SQLiteOpenHelper {
         super(context, "AppItemDataBase", null, 1);
     }
 
+    private static boolean isAppItemExists(SQLiteDatabase db, String packageName) {
+        String Query = "Select * from appItem  where  packageName  = " + packageName;
+        Cursor cursor = db.rawQuery(Query, null);
+        if (cursor.getCount() <= 0) {
+            cursor.close();
+            return false;
+        }
+        cursor.close();
+        return true;
+    }
+
     @Override
     public void onCreate(SQLiteDatabase db) {
         db.execSQL("create table appItem ("
@@ -47,13 +58,16 @@ public class DBHelper extends SQLiteOpenHelper {
         return items;
     }
 
-    public void writeAllAppItems(SQLiteDatabase db, List<AppItem> appItems){
-        for (AppItem item: appItems) {
-            ContentValues cv = new ContentValues();
-            cv.put("packageName", item.getName());
-            cv.put("itemStatus", item.getStatus());
+    public void writeAllAppItems(SQLiteDatabase db, List<AppItem> appItems) {
+        List<AppItem> dbItems = readAllAppItems(db);
+        for (AppItem item : appItems) {
+            if (!dbItems.contains(item)) {
+                ContentValues cv = new ContentValues();
+                cv.put("packageName", item.getName());
+                cv.put("itemStatus", item.getStatus());
 
-            db.insert("appItem", null, cv);
+                db.insert("appItem", null, cv);
+            }
         }
     }
 
@@ -65,13 +79,13 @@ public class DBHelper extends SQLiteOpenHelper {
         db.insert("appItem", null, cv);
     }
 
-    public void updateAppItem(SQLiteDatabase db, String packageName, Boolean newItemStatus) {
-        if (isAppItemExists(db, packageName)) {
+    public void updateAppItem(SQLiteDatabase db, AppItem item) {
+        if (isAppItemExists(db, item.getName())) {
             ContentValues cv = new ContentValues();
-            cv.put("packageName", packageName);
-            cv.put("itemStatus", newItemStatus);
+            cv.put("packageName", item.getName());
+            cv.put("itemStatus", item.getStatus());
 
-            db.update("appItem", cv, "packageName=" + packageName, null);
+            db.update("appItem", cv, "packageName=" + item.getStatus(), null);
         }
     }
 
@@ -79,16 +93,5 @@ public class DBHelper extends SQLiteOpenHelper {
         if (isAppItemExists(db, packageName)) {
             db.delete("appItem", "packageName=?", new String[]{packageName});
         }
-    }
-
-    private static boolean isAppItemExists(SQLiteDatabase db, String packageName) {
-        String Query = "Select * from appItem  where  packageName  = " + packageName;
-        Cursor cursor = db.rawQuery(Query, null);
-        if (cursor.getCount() <= 0) {
-            cursor.close();
-            return false;
-        }
-        cursor.close();
-        return true;
     }
 }

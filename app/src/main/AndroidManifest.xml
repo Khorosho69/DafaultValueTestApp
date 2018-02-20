@@ -23,7 +23,7 @@
             </intent-filter>
         </activity>
 
-        <service android:name=".servises.ApplicationsService" />
+        <service android:name=".services.ApplicationsService" />
 
         <receiver
             android:name=".receivers.ApplicationsReceiver"
