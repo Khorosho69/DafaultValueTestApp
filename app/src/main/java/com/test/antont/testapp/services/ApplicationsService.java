@@ -12,15 +12,13 @@ import android.support.v4.content.LocalBroadcastManager;
 
 import com.test.antont.testapp.databases.DBHelper;
 import com.test.antont.testapp.enums.ActionType;
-import com.test.antont.testapp.models.AppItem;
+import com.test.antont.testapp.models.AppInfo;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 public class ApplicationsService extends IntentService {
-
-    private List<AppItem> mAppItems;
 
     private DBHelper mDBHelper;
     private SQLiteDatabase mDatabase;
@@ -35,8 +33,6 @@ public class ApplicationsService extends IntentService {
 
         mDBHelper = new DBHelper(this);
         mDatabase = mDBHelper.getWritableDatabase();
-
-        LocalBroadcastManager localBroadcastManager = LocalBroadcastManager.getInstance(getApplicationContext());
     }
 
     @Override
@@ -46,7 +42,7 @@ public class ApplicationsService extends IntentService {
 
     @Override
     protected void onHandleIntent(Intent intent) {
-        mAppItems = getInstalledApps();
+        List<AppInfo> mAppItems = getAppInfoList();
 
         Intent localIntent = new Intent(ActionType.ON_ALL_ITEMS_RETURNED.name());
 
@@ -57,31 +53,23 @@ public class ApplicationsService extends IntentService {
         LocalBroadcastManager.getInstance(this).sendBroadcast(localIntent);
     }
 
-    private List<AppItem> getInstalledApps() {
-        List<AppItem> appItemsFromDB = mDBHelper.readAllAppItems(mDatabase);
-        List<AppItem> actualItems = getActualAppItems();
-
-        if (appItemsFromDB == null || appItemsFromDB.size() == 0 || !appItemsFromDB.equals(actualItems)) {
-            appItemsFromDB = getActualAppItems();
-            mDBHelper.writeAllAppItems(mDatabase, appItemsFromDB);
-
-            return appItemsFromDB;
-        } else{
-            return appItemsFromDB;
-        }
+    private List<AppInfo> getAppInfoList() {
+        List<AppInfo> actualItemsList = getActualPackagesNames();
+        mDBHelper.writeAppInfoList(mDatabase, actualItemsList);
+        return mDBHelper.readAppInfoList(mDatabase);
     }
 
-    private List<AppItem> getActualAppItems(){
-        List<AppItem> appItems = new ArrayList<AppItem>();
+    private List<AppInfo> getActualPackagesNames() {
+        List<AppInfo> appInfoList = new ArrayList<>();
         List<PackageInfo> packs = getPackageManager().getInstalledPackages(0);
         for (int i = 0; i < packs.size(); i++) {
             PackageInfo p = packs.get(i);
             if (!isSystemPackage(p)) {
                 String appName = p.applicationInfo.loadLabel(getPackageManager()).toString();
-                appItems.add(new AppItem(appName, true));
+                appInfoList.add(new AppInfo(p.packageName, appName, true));
             }
         }
-        return appItems;
+        return appInfoList;
     }
 
     private boolean isSystemPackage(PackageInfo pkgInfo) {

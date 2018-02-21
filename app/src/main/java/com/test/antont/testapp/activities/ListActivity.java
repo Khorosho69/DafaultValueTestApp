@@ -13,7 +13,7 @@ import android.support.v7.widget.RecyclerView;
 import com.test.antont.testapp.R;
 import com.test.antont.testapp.adapters.RecyclerViewAdapter;
 import com.test.antont.testapp.enums.ActionType;
-import com.test.antont.testapp.models.AppItem;
+import com.test.antont.testapp.models.AppInfo;
 import com.test.antont.testapp.receivers.ApplicationsReceiver;
 import com.test.antont.testapp.services.ApplicationsService;
 
@@ -24,14 +24,14 @@ import java.util.stream.Collectors;
 public class ListActivity extends AppCompatActivity {
 
     private RecyclerView mRecyclerView;
-    private List<AppItem> mAppItems;
+    private List<AppInfo> mAppInfoList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_list);
 
-        mAppItems = new ArrayList<>();
+        mAppInfoList = new ArrayList<>();
 
         startService(new Intent(this, ApplicationsService.class));
 
@@ -60,25 +60,29 @@ public class ListActivity extends AppCompatActivity {
             switch (type) {
                 case ON_ALL_ITEMS_RETURNED:
                     Bundle bundle = intent.getExtras();
-                    mAppItems.clear();
-                    mAppItems.addAll((List<AppItem>) bundle.getSerializable("app_list"));
-                    setupRecyclerView(mAppItems);
+
+                    List<AppInfo> receivedItems = (List<AppInfo>) bundle.getSerializable("app_list");
+                    if (receivedItems != null) {
+                        mAppInfoList.clear();
+                        mAppInfoList.addAll(receivedItems);
+                        setupRecyclerView(mAppInfoList);
+                    }
                     break;
 
                 case ON_PACKAGE_ADDED:
-                    mAppItems.add(new AppItem(intent.getStringExtra("new_item"), true));
+                    mAppInfoList.add(new AppInfo(intent.getStringExtra("new_item_package"), intent.getStringExtra("new_item_name"), true));
                     mRecyclerView.getAdapter().notifyItemInserted(mRecyclerView.getAdapter().getItemCount());
                     break;
 
                 case ON_PACKAGE_REMOVED:
                     String packageName = intent.getStringExtra("remove_item");
 
-                    List<AppItem> result = mAppItems.stream()
-                            .filter(item -> item.getName().equals(packageName))
+                    List<AppInfo> result = mAppInfoList.stream()
+                            .filter(item -> item.getPackageName().equals(packageName))
                             .collect(Collectors.toList());
 
-                    int itemIndex = mAppItems.indexOf(result.get(0));
-                    mAppItems.remove(itemIndex);
+                    int itemIndex = mAppInfoList.indexOf(result.get(0));
+                    mAppInfoList.remove(itemIndex);
                     mRecyclerView.getAdapter().notifyItemRemoved(itemIndex);
                     break;
             }
@@ -86,7 +90,7 @@ public class ListActivity extends AppCompatActivity {
         }
     };
 
-    private void setupRecyclerView(List<AppItem> appItems) {
+    private void setupRecyclerView(List<AppInfo> appItems) {
         mRecyclerView = findViewById(R.id.appRecyclerView);
 
         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(this);

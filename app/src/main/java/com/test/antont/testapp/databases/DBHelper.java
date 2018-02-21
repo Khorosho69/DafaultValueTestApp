@@ -6,7 +6,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
-import com.test.antont.testapp.models.AppItem;
+import com.test.antont.testapp.models.AppInfo;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,9 +17,10 @@ public class DBHelper extends SQLiteOpenHelper {
         super(context, "AppItemDataBase", null, 1);
     }
 
-    private static boolean isAppItemExists(SQLiteDatabase db, String packageName) {
-        String Query = "Select * from appItem  where  packageName  = " + packageName;
-        Cursor cursor = db.rawQuery(Query, null);
+    private static boolean isAppInfoExists(SQLiteDatabase db, String packageName) {
+        String query = "SELECT * FROM applicationsInfo WHERE packageName = ?";
+        Cursor cursor = db.rawQuery(query, new String[]{packageName});
+
         if (cursor.getCount() <= 0) {
             cursor.close();
             return false;
@@ -30,9 +31,10 @@ public class DBHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        db.execSQL("create table appItem ("
+        db.execSQL("create table applicationsInfo ("
                 + "packageName text primary key,"
-                + "itemStatus bollean" + ");");
+                + "applicationName text,"
+                + "itemStatus text" + ");");
     }
 
     @Override
@@ -40,58 +42,62 @@ public class DBHelper extends SQLiteOpenHelper {
 
     }
 
-    public List<AppItem> readAllAppItems(SQLiteDatabase db) {
-        List<AppItem> items = new ArrayList<>();
+    public List<AppInfo> readAppInfoList(SQLiteDatabase db) {
+        List<AppInfo> items = new ArrayList<>();
 
-        Cursor c = db.query("appItem", null, null, null, null, null, null);
+        Cursor c = db.rawQuery("select * from applicationsInfo", null);
 
         if (c.moveToFirst()) {
+            while (!c.isAfterLast()) {
+                String packageName = c.getString(c.getColumnIndex("packageName"));
+                String applicationName = c.getString(c.getColumnIndex("applicationName"));
 
-            int packageNameColIndex = c.getColumnIndex("packageName");
-            int itemStatusColIndex = c.getColumnIndex("itemStatus");
+                Boolean status = Boolean.parseBoolean(c.getString(c.getColumnIndex("itemStatus")));
 
-            do {
-                items.add(new AppItem(c.getString(packageNameColIndex), Boolean.parseBoolean(c.getString(itemStatusColIndex))));
-            } while (c.moveToNext());
-        } else
-            c.close();
+                items.add(new AppInfo(packageName, applicationName, status));
+                c.moveToNext();
+            }
+        }
+        c.close();
         return items;
     }
 
-    public void writeAllAppItems(SQLiteDatabase db, List<AppItem> appItems) {
-        List<AppItem> dbItems = readAllAppItems(db);
-        for (AppItem item : appItems) {
-            if (!dbItems.contains(item)) {
+    public void writeAppInfoList(SQLiteDatabase db, List<AppInfo> packageNameList) {
+        for (AppInfo item : packageNameList) {
+            if (!isAppInfoExists(db, item.getPackageName())) {
                 ContentValues cv = new ContentValues();
-                cv.put("packageName", item.getName());
-                cv.put("itemStatus", item.getStatus());
+                cv.put("packageName", item.getPackageName());
+                cv.put("applicationName", item.getAppName());
+                cv.put("itemStatus", "true");
 
-                db.insert("appItem", null, cv);
+                db.insert("applicationsInfo", null, cv);
             }
         }
     }
 
-    public void writeAppItem(SQLiteDatabase db, AppItem item) {
+    public void writeAppInfo(SQLiteDatabase db, AppInfo item) {
         ContentValues cv = new ContentValues();
-        cv.put("packageName", item.getName());
-        cv.put("itemStatus", item.getStatus());
+        cv.put("packageName", item.getPackageName());
+        cv.put("applicationName", item.getAppName());
+        cv.put("itemStatus", "true");
 
-        db.insert("appItem", null, cv);
+        db.insert("applicationsInfo", null, cv);
     }
 
-    public void updateAppItem(SQLiteDatabase db, AppItem item) {
-        if (isAppItemExists(db, item.getName())) {
+    public void updateAppInfo(SQLiteDatabase db, AppInfo item) {
+        if (isAppInfoExists(db, item.getPackageName())) {
             ContentValues cv = new ContentValues();
-            cv.put("packageName", item.getName());
-            cv.put("itemStatus", item.getStatus());
+            cv.put("packageName", item.getPackageName());
+            cv.put("applicationName", item.getAppName());
+            cv.put("itemStatus", Boolean.toString(item.getStatus()));
 
-            db.update("appItem", cv, "packageName=" + item.getStatus(), null);
+            db.update("applicationsInfo", cv, "packageName=?", new String[]{item.getPackageName()});
         }
     }
 
-    public void deleteAppItem(SQLiteDatabase db, String packageName) {
-        if (isAppItemExists(db, packageName)) {
-            db.delete("appItem", "packageName=?", new String[]{packageName});
+    public void deleteAppInfo(SQLiteDatabase db, String packageName) {
+        if (isAppInfoExists(db, packageName)) {
+            db.delete("applicationsInfo", "packageName=?", new String[]{packageName});
         }
     }
 }

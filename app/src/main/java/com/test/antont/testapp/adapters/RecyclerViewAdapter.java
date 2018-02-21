@@ -7,20 +7,20 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
 
 import com.test.antont.testapp.R;
 import com.test.antont.testapp.databases.DBHelper;
-import com.test.antont.testapp.models.AppItem;
+import com.test.antont.testapp.models.AppInfo;
 
 import java.util.List;
 
 public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.ViewHolder> {
 
-    private List<AppItem> mDataset;
-
+    private List<AppInfo> mDataset;
     private Context mContext;
 
-    public RecyclerViewAdapter(List<AppItem> mDataset) {
+    public RecyclerViewAdapter(List<AppInfo> mDataset) {
         this.mDataset = mDataset;
     }
 
@@ -33,21 +33,21 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        holder.mCheckBox.setText(mDataset.get(position).getName());
+        holder.mCheckBox.setText(mDataset.get(position).getAppName());
         holder.mCheckBox.setChecked(mDataset.get(position).getStatus());
-        holder.mCheckBox.setOnCheckedChangeListener(null);
-        holder.mCheckBox.setOnCheckedChangeListener((compoundButton, b) -> updateItemStatus(holder, b));
+        holder.mCheckBox.setOnCheckedChangeListener((compoundButton, b) -> onCheckedChanged(position, b, compoundButton));
+
     }
 
-    private void updateItemStatus(RecyclerViewAdapter.ViewHolder holder, Boolean status) {
+    private void onCheckedChanged(int position, Boolean status, CompoundButton compoundButton) {
+        if (!compoundButton.isPressed()) {
+            return;
+        }
+        AppInfo newItem = new AppInfo(mDataset.get(position).getPackageName(), mDataset.get(position).getAppName(), status);
+        mDataset.set(position, newItem);
         DBHelper mDBHelper = new DBHelper(mContext);
         SQLiteDatabase mDataBase = mDBHelper.getWritableDatabase();
-
-        AppItem newItem = new AppItem(mDataset.get(holder.getAdapterPosition()).getName(), status);
-
-        mDBHelper.updateAppItem(mDataBase, newItem);
-        mDataset.set(holder.getAdapterPosition(), newItem);
-        notifyItemChanged(holder.getAdapterPosition());
+        mDBHelper.updateAppInfo(mDataBase, newItem);
     }
 
     @Override
