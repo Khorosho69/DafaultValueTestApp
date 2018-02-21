@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v4.content.LocalBroadcastManager;
 
+import com.test.antont.testapp.activities.ListActivity;
 import com.test.antont.testapp.databases.DBHelper;
 import com.test.antont.testapp.enums.ActionType;
 import com.test.antont.testapp.models.AppInfo;
@@ -47,7 +48,7 @@ public class ApplicationsService extends IntentService {
         Intent localIntent = new Intent(ActionType.ON_ALL_ITEMS_RETURNED.name());
 
         Bundle bundle = new Bundle();
-        bundle.putSerializable("app_list", (Serializable) mAppItems);
+        bundle.putSerializable(ListActivity.EXTRAS_SERIALIZED_APP_LIST, (Serializable) mAppItems);
         localIntent.putExtras(bundle);
 
         LocalBroadcastManager.getInstance(this).sendBroadcast(localIntent);

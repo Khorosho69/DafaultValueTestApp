@@ -23,6 +23,12 @@ import java.util.stream.Collectors;
 
 public class ListActivity extends AppCompatActivity {
 
+    public static final String EXTRAS_NEW_ITEM_PACKAGE = "NEW_APP_PACKAGE";
+    public static final String EXTRAS_NEW_ITEM_NAME = "NEW_APP_NAME";
+    public static final String EXTRAS_REMOVE_ITEM = "REMOVE_ITEM";
+
+    public static final String EXTRAS_SERIALIZED_APP_LIST = "SERIALIZED_LIST";
+
     private RecyclerView mRecyclerView;
     private List<AppInfo> mAppInfoList;
 
@@ -61,7 +67,7 @@ public class ListActivity extends AppCompatActivity {
                 case ON_ALL_ITEMS_RETURNED:
                     Bundle bundle = intent.getExtras();
 
-                    List<AppInfo> receivedItems = (List<AppInfo>) bundle.getSerializable("app_list");
+                    List<AppInfo> receivedItems = (List<AppInfo>) bundle.getSerializable(EXTRAS_SERIALIZED_APP_LIST);
                     if (receivedItems != null) {
                         mAppInfoList.clear();
                         mAppInfoList.addAll(receivedItems);
@@ -70,12 +76,12 @@ public class ListActivity extends AppCompatActivity {
                     break;
 
                 case ON_PACKAGE_ADDED:
-                    mAppInfoList.add(new AppInfo(intent.getStringExtra("new_item_package"), intent.getStringExtra("new_item_name"), true));
+                    mAppInfoList.add(new AppInfo(intent.getStringExtra(EXTRAS_NEW_ITEM_PACKAGE), intent.getStringExtra(EXTRAS_NEW_ITEM_NAME), true));
                     mRecyclerView.getAdapter().notifyItemInserted(mRecyclerView.getAdapter().getItemCount());
                     break;
 
                 case ON_PACKAGE_REMOVED:
-                    String packageName = intent.getStringExtra("remove_item");
+                    String packageName = intent.getStringExtra(EXTRAS_REMOVE_ITEM);
 
                     List<AppInfo> result = mAppInfoList.stream()
                             .filter(item -> item.getPackageName().equals(packageName))
