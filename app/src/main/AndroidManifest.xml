@@ -23,12 +23,18 @@
             </intent-filter>
         </activity>
 
-        <service android:name=".services.ApplicationsService" />
+        <service android:name=".services.ApplicationsService"
+            android:exported="false"/>
 
         <receiver
             android:name=".receivers.ApplicationsReceiver"
             android:enabled="true"
             android:exported="true">
+            <intent-filter android:priority="1000">
+                <action android:name="android.intent.action.PACKAGE_ADDED"/>
+                <action android:name="android.intent.action.PACKAGE_REMOVED"/>
+                <data android:scheme="package"/>
+            </intent-filter>
         </receiver>
     </application>
 

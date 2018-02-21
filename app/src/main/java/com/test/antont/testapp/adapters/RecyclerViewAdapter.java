@@ -18,8 +18,6 @@ import java.util.List;
 public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.ViewHolder> {
 
     private List<AppInfo> mDataset;
-    private Context mContext;
-
     public RecyclerViewAdapter(List<AppInfo> mDataset) {
         this.mDataset = mDataset;
     }
@@ -27,7 +25,6 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
     @Override
     public RecyclerViewAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.app_item, parent, false);
-        mContext = parent.getContext();
         return new ViewHolder(v);
     }
 
@@ -36,7 +33,6 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         holder.mCheckBox.setText(mDataset.get(position).getAppName());
         holder.mCheckBox.setChecked(mDataset.get(position).getStatus());
         holder.mCheckBox.setOnCheckedChangeListener((compoundButton, b) -> onCheckedChanged(position, b, compoundButton));
-
     }
 
     private void onCheckedChanged(int position, Boolean status, CompoundButton compoundButton) {
@@ -45,9 +41,25 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         }
         AppInfo newItem = new AppInfo(mDataset.get(position).getPackageName(), mDataset.get(position).getAppName(), status);
         mDataset.set(position, newItem);
-        DBHelper mDBHelper = new DBHelper(mContext);
-        SQLiteDatabase mDataBase = mDBHelper.getWritableDatabase();
-        mDBHelper.updateAppInfo(mDataBase, newItem);
+
+        DBHelper DBHelper = new DBHelper(compoundButton.getContext());
+        SQLiteDatabase dataBase = DBHelper.getWritableDatabase();
+        DBHelper.updateAppInfo(dataBase, newItem);
+        DBHelper.close();
+    }
+
+    public void addNewItem(AppInfo item){
+        mDataset.add(item);
+        notifyItemInserted(getItemCount());
+    }
+
+    public void removeItemByPackageName(String packageName){
+        for (int i = 0; i < getItemCount(); i++) {
+            if(mDataset.get(i).getPackageName().equals(packageName)){
+                mDataset.remove(i);
+                notifyItemRemoved(i);
+            }
+        }
     }
 
     @Override

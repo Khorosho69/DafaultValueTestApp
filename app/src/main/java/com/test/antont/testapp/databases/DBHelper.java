@@ -19,8 +19,6 @@ public class DBHelper extends SQLiteOpenHelper {
     private static final String APPLICATION_NAME_FIELD = "applicationName";
     private static final String ITEM_STATUS_FIELD = "itemStatus";
 
-
-
     public DBHelper(Context context) {
         super(context, "AppItemDataBase", null, 1);
     }

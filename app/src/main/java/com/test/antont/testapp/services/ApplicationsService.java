@@ -37,11 +37,6 @@ public class ApplicationsService extends IntentService {
     }
 
     @Override
-    public IBinder onBind(Intent intent) {
-        return null;
-    }
-
-    @Override
     protected void onHandleIntent(Intent intent) {
         List<AppInfo> mAppItems = getAppInfoList();
 
@@ -64,16 +59,16 @@ public class ApplicationsService extends IntentService {
         List<AppInfo> appInfoList = new ArrayList<>();
         List<PackageInfo> packs = getPackageManager().getInstalledPackages(0);
         for (int i = 0; i < packs.size(); i++) {
-            PackageInfo p = packs.get(i);
-            if (!isSystemPackage(p)) {
-                String appName = p.applicationInfo.loadLabel(getPackageManager()).toString();
-                appInfoList.add(new AppInfo(p.packageName, appName, true));
+            PackageInfo packageInfo = packs.get(i);
+            if (!isSystemPackage(packageInfo)) {
+                String appName = packageInfo.applicationInfo.loadLabel(getPackageManager()).toString();
+                appInfoList.add(new AppInfo(packageInfo.packageName, appName, true));
             }
         }
         return appInfoList;
     }
 
-    private boolean isSystemPackage(PackageInfo pkgInfo) {
-        return (pkgInfo.applicationInfo.flags & ApplicationInfo.FLAG_SYSTEM) != 0;
+    private boolean isSystemPackage(PackageInfo packageInfo) {
+        return (packageInfo.applicationInfo.flags & ApplicationInfo.FLAG_SYSTEM) != 0;
     }
 }

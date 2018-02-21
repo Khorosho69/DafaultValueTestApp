@@ -30,32 +30,23 @@ public class ListActivity extends AppCompatActivity {
     public static final String EXTRAS_SERIALIZED_APP_LIST = "SERIALIZED_LIST";
 
     private RecyclerView mRecyclerView;
-    private List<AppInfo> mAppInfoList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_list);
 
-        mAppInfoList = new ArrayList<>();
-
         startService(new Intent(this, ApplicationsService.class));
+        setupLocalBroadcastManager();
+    }
 
+    private void setupLocalBroadcastManager() {
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(ActionType.ON_ALL_ITEMS_RETURNED.name());
         intentFilter.addAction(ActionType.ON_PACKAGE_ADDED.name());
         intentFilter.addAction(ActionType.ON_PACKAGE_REMOVED.name());
 
         LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver, intentFilter);
-
-        ApplicationsReceiver mAppReceiver = new ApplicationsReceiver();
-
-        IntentFilter receiverIntentFilter = new IntentFilter();
-        receiverIntentFilter.addAction(Intent.ACTION_PACKAGE_ADDED);
-        receiverIntentFilter.addAction(Intent.ACTION_PACKAGE_REMOVED);
-        receiverIntentFilter.addDataScheme("package");
-
-        registerReceiver(mAppReceiver, receiverIntentFilter);
     }
 
     private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
@@ -63,33 +54,28 @@ public class ListActivity extends AppCompatActivity {
         public void onReceive(Context context, Intent intent) {
             ActionType type = ActionType.valueOf(intent.getAction());
 
+            String packageName;
+
             switch (type) {
                 case ON_ALL_ITEMS_RETURNED:
                     Bundle bundle = intent.getExtras();
 
                     List<AppInfo> receivedItems = (List<AppInfo>) bundle.getSerializable(EXTRAS_SERIALIZED_APP_LIST);
                     if (receivedItems != null) {
-                        mAppInfoList.clear();
-                        mAppInfoList.addAll(receivedItems);
-                        setupRecyclerView(mAppInfoList);
+                        setupRecyclerView(receivedItems);
                     }
                     break;
 
                 case ON_PACKAGE_ADDED:
-                    mAppInfoList.add(new AppInfo(intent.getStringExtra(EXTRAS_NEW_ITEM_PACKAGE), intent.getStringExtra(EXTRAS_NEW_ITEM_NAME), true));
-                    mRecyclerView.getAdapter().notifyItemInserted(mRecyclerView.getAdapter().getItemCount());
+                    packageName = intent.getStringExtra(EXTRAS_NEW_ITEM_PACKAGE);
+                    String name = intent.getStringExtra(EXTRAS_NEW_ITEM_NAME);
+
+                    ((RecyclerViewAdapter)mRecyclerView.getAdapter()).addNewItem(new AppInfo(packageName, name, true));
                     break;
 
                 case ON_PACKAGE_REMOVED:
-                    String packageName = intent.getStringExtra(EXTRAS_REMOVE_ITEM);
-
-                    List<AppInfo> result = mAppInfoList.stream()
-                            .filter(item -> item.getPackageName().equals(packageName))
-                            .collect(Collectors.toList());
-
-                    int itemIndex = mAppInfoList.indexOf(result.get(0));
-                    mAppInfoList.remove(itemIndex);
-                    mRecyclerView.getAdapter().notifyItemRemoved(itemIndex);
+                    packageName = intent.getStringExtra(EXTRAS_REMOVE_ITEM);
+                    ((RecyclerViewAdapter)mRecyclerView.getAdapter()).removeItemByPackageName(packageName);
                     break;
             }
 
@@ -99,11 +85,12 @@ public class ListActivity extends AppCompatActivity {
     private void setupRecyclerView(List<AppInfo> appItems) {
         mRecyclerView = findViewById(R.id.appRecyclerView);
 
-        RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(this);
-        mRecyclerView.setLayoutManager(mLayoutManager);
+        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this);
+        mRecyclerView.setLayoutManager(layoutManager);
 
-        RecyclerView.Adapter mAdapter = new RecyclerViewAdapter(appItems);
-        mRecyclerView.setAdapter(mAdapter);
+
+        RecyclerView.Adapter adapter = new RecyclerViewAdapter(appItems);
+        mRecyclerView.setAdapter(adapter);
 
         mRecyclerView.getAdapter().notifyDataSetChanged();
     }
