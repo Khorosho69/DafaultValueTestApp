@@ -4,22 +4,21 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 
 import com.test.antont.testapp.R;
 import com.test.antont.testapp.adapters.RecyclerViewAdapter;
+import com.test.antont.testapp.databases.AppInfo;
 import com.test.antont.testapp.enums.ActionType;
-import com.test.antont.testapp.models.AppInfo;
-import com.test.antont.testapp.receivers.ApplicationsReceiver;
 import com.test.antont.testapp.services.ApplicationsService;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class ListActivity extends AppCompatActivity {
 
@@ -62,15 +61,23 @@ public class ListActivity extends AppCompatActivity {
 
                     List<AppInfo> receivedItems = (List<AppInfo>) bundle.getSerializable(EXTRAS_SERIALIZED_APP_LIST);
                     if (receivedItems != null) {
-                        setupRecyclerView(receivedItems);
+//                        setupRecyclerView(receivedItems);
                     }
                     break;
 
                 case ON_PACKAGE_ADDED:
                     packageName = intent.getStringExtra(EXTRAS_NEW_ITEM_PACKAGE);
                     String name = intent.getStringExtra(EXTRAS_NEW_ITEM_NAME);
+                    Drawable appIcon;
+                    PackageManager packageManager = context.getPackageManager();
+                    try {
+                        PackageInfo packageInfo = packageManager.getPackageInfo(packageName, 0);
+                        appIcon = packageInfo.applicationInfo.loadIcon(packageManager);
+                    } catch (PackageManager.NameNotFoundException e) {
+                        return;
+                    }
 
-                    ((RecyclerViewAdapter)mRecyclerView.getAdapter()).addNewItem(new AppInfo(packageName, name, true));
+//                    ((RecyclerViewAdapter)mRecyclerView.getAdapter()).addNewItem(new AppInfo(packageName, name, "true", appIcon));
                     break;
 
                 case ON_PACKAGE_REMOVED:
@@ -82,18 +89,18 @@ public class ListActivity extends AppCompatActivity {
         }
     };
 
-    private void setupRecyclerView(List<AppInfo> appItems) {
-        mRecyclerView = findViewById(R.id.appRecyclerView);
-
-        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this);
-        mRecyclerView.setLayoutManager(layoutManager);
-
-
-        RecyclerView.Adapter adapter = new RecyclerViewAdapter(appItems);
-        mRecyclerView.setAdapter(adapter);
-
-        mRecyclerView.getAdapter().notifyDataSetChanged();
-    }
+//    private void setupRecyclerView(List<AppInfo> appItems) {
+//        mRecyclerView = findViewById(R.id.appRecyclerView);
+//
+//        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this);
+//        mRecyclerView.setLayoutManager(layoutManager);
+//
+//
+//        RecyclerView.Adapter adapter = new RecyclerViewAdapter(appItems);
+//        mRecyclerView.setAdapter(adapter);
+//
+//        mRecyclerView.getAdapter().notifyDataSetChanged();
+//    }
 
     @Override
     protected void onDestroy() {

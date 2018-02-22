@@ -8,6 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
+import android.widget.ImageView;
 
 import com.test.antont.testapp.R;
 import com.test.antont.testapp.databases.DBHelper;
@@ -30,8 +31,11 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        holder.mCheckBox.setText(mDataset.get(position).getAppName());
-        holder.mCheckBox.setChecked(mDataset.get(position).getStatus());
+        AppInfo item = mDataset.get(position);
+
+        holder.mCheckBox.setText(item.getAppName());
+        holder.mCheckBox.setChecked(item.getStatus());
+        holder.mImageView.setImageDrawable(item.getAppIcon());
         holder.mCheckBox.setOnCheckedChangeListener((compoundButton, b) -> onCheckedChanged(position, b, compoundButton));
     }
 
@@ -39,7 +43,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         if (!compoundButton.isPressed()) {
             return;
         }
-        AppInfo newItem = new AppInfo(mDataset.get(position).getPackageName(), mDataset.get(position).getAppName(), status);
+        AppInfo newItem = new AppInfo(mDataset.get(position).getAppIcon(), mDataset.get(position).getPackageName(), mDataset.get(position).getAppName(), status);
         mDataset.set(position, newItem);
 
         DBHelper DBHelper = new DBHelper(compoundButton.getContext());
@@ -54,10 +58,10 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
     }
 
     public void removeItemByPackageName(String packageName){
-        for (int i = 0; i < getItemCount(); i++) {
-            if(mDataset.get(i).getPackageName().equals(packageName)){
-                mDataset.remove(i);
-                notifyItemRemoved(i);
+        for (AppInfo item: mDataset) {
+            if(item.getPackageName().equals(packageName)){
+                mDataset.remove(mDataset.indexOf(item));
+                notifyItemRemoved(mDataset.indexOf(item));
             }
         }
     }
@@ -69,10 +73,12 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
 
     static class ViewHolder extends RecyclerView.ViewHolder {
         CheckBox mCheckBox;
+        ImageView mImageView;
 
         ViewHolder(View v) {
             super(v);
             mCheckBox = v.findViewById(R.id.appItemCheckBox);
+            mImageView = v.findViewById(R.id.appIconImageView);
         }
     }
 }

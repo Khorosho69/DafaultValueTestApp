@@ -7,6 +7,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
 import com.test.antont.testapp.models.AppInfo;
+import com.test.antont.testapp.models.AppStatus;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,19 +49,18 @@ public class DBHelper extends SQLiteOpenHelper {
 
     }
 
-    public List<AppInfo> readAppInfoList(SQLiteDatabase db) {
-        List<AppInfo> items = new ArrayList<>();
+    public List<AppStatus> readAppInfoList(SQLiteDatabase db) {
+        List<AppStatus> items = new ArrayList<>();
 
         Cursor c = db.rawQuery("select * from " + APPLICATIONS_TABLE_NAME, null);
 
         if (c.moveToFirst()) {
             while (!c.isAfterLast()) {
                 String packageName = c.getString(c.getColumnIndex(PACKAGE_NAME_FIELD));
-                String applicationName = c.getString(c.getColumnIndex(APPLICATION_NAME_FIELD));
 
                 Boolean status = Boolean.parseBoolean(c.getString(c.getColumnIndex(ITEM_STATUS_FIELD)));
 
-                items.add(new AppInfo(packageName, applicationName, status));
+                items.add(new AppStatus(packageName, status));
                 c.moveToNext();
             }
         }

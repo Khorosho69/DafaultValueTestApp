@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v4.content.LocalBroadcastManager;
@@ -14,6 +15,7 @@ import com.test.antont.testapp.activities.ListActivity;
 import com.test.antont.testapp.databases.DBHelper;
 import com.test.antont.testapp.enums.ActionType;
 import com.test.antont.testapp.models.AppInfo;
+import com.test.antont.testapp.models.AppStatus;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -52,17 +54,20 @@ public class ApplicationsService extends IntentService {
     private List<AppInfo> getAppInfoList() {
         List<AppInfo> actualItemsList = getActualPackagesNames();
         mDBHelper.writeAppInfoList(mDatabase, actualItemsList);
-        return mDBHelper.readAppInfoList(mDatabase);
+
+        List<AppStatus> appStatusList = mDBHelper.readAppInfoList(mDatabase);
+
+        return actualItemsList;
     }
 
     private List<AppInfo> getActualPackagesNames() {
         List<AppInfo> appInfoList = new ArrayList<>();
         List<PackageInfo> packs = getPackageManager().getInstalledPackages(0);
-        for (int i = 0; i < packs.size(); i++) {
-            PackageInfo packageInfo = packs.get(i);
+        for(PackageInfo packageInfo: packs){
             if (!isSystemPackage(packageInfo)) {
                 String appName = packageInfo.applicationInfo.loadLabel(getPackageManager()).toString();
-                appInfoList.add(new AppInfo(packageInfo.packageName, appName, true));
+                Drawable icon = packageInfo.applicationInfo.loadIcon(getPackageManager());
+                appInfoList.add(new AppInfo(icon, packageInfo.packageName, appName, true));
             }
         }
         return appInfoList;

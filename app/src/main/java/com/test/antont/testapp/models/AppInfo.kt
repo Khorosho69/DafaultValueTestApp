@@ -1,3 +1,5 @@
 package com.test.antont.testapp.models
 
-data class AppInfo(val packageName: String, val appName: String, var status: Boolean)
+import android.graphics.drawable.Drawable
+
+data class AppInfo(val appIcon: Drawable, val packageName: String, val appName: String, var status: Boolean)

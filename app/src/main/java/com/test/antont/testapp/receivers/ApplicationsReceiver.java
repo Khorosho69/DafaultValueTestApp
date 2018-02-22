@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.drawable.Drawable;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
@@ -27,10 +28,12 @@ public class ApplicationsReceiver extends BroadcastReceiver {
         String packageName = intent.getData().getEncodedSchemeSpecificPart();
 
         PackageManager packageManager = context.getPackageManager();
+        Drawable appIcon;
         String appName;
         try {
             PackageInfo packageInfo = packageManager.getPackageInfo(packageName, 0);
             appName = packageInfo.applicationInfo.loadLabel(packageManager).toString();
+            appIcon = packageInfo.applicationInfo.loadIcon(packageManager);
         } catch (PackageManager.NameNotFoundException e) {
             return;
         }
@@ -42,7 +45,7 @@ public class ApplicationsReceiver extends BroadcastReceiver {
 
             LocalBroadcastManager.getInstance(context).sendBroadcast(localIntent);
 
-            mDBHelper.writeAppInfo(mDataBase, new AppInfo(packageName, appName, true));
+            mDBHelper.writeAppInfo(mDataBase, new AppInfo(appIcon, packageName, appName, true));
         } else if (Objects.equals(intent.getAction(), Intent.ACTION_PACKAGE_REMOVED)) {
             Intent localIntent = new Intent(ActionType.ON_PACKAGE_REMOVED.name());
             localIntent.putExtra(ListActivity.EXTRAS_REMOVE_ITEM, packageName);
