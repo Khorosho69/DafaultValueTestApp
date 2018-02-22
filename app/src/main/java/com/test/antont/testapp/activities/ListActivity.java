@@ -10,12 +10,14 @@ import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 
 import com.test.antont.testapp.R;
 import com.test.antont.testapp.adapters.RecyclerViewAdapter;
 import com.test.antont.testapp.databases.AppInfo;
 import com.test.antont.testapp.enums.ActionType;
+import com.test.antont.testapp.receivers.ApplicationsReceiver;
 import com.test.antont.testapp.services.ApplicationsService;
 
 import java.util.List;
@@ -37,6 +39,7 @@ public class ListActivity extends AppCompatActivity {
 
         startService(new Intent(this, ApplicationsService.class));
         setupLocalBroadcastManager();
+        setupAppReceiver();
     }
 
     private void setupLocalBroadcastManager() {
@@ -46,6 +49,17 @@ public class ListActivity extends AppCompatActivity {
         intentFilter.addAction(ActionType.ON_PACKAGE_REMOVED.name());
 
         LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver, intentFilter);
+    }
+
+    private void setupAppReceiver() {
+        ApplicationsReceiver mAppReceiver = new ApplicationsReceiver();
+
+        IntentFilter receiverIntentFilter = new IntentFilter();
+        receiverIntentFilter.addAction(Intent.ACTION_PACKAGE_ADDED);
+        receiverIntentFilter.addAction(Intent.ACTION_PACKAGE_REMOVED);
+        receiverIntentFilter.addDataScheme("package");
+
+        registerReceiver(mAppReceiver, receiverIntentFilter);
     }
 
     private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
@@ -61,7 +75,7 @@ public class ListActivity extends AppCompatActivity {
 
                     List<AppInfo> receivedItems = (List<AppInfo>) bundle.getSerializable(EXTRAS_SERIALIZED_APP_LIST);
                     if (receivedItems != null) {
-//                        setupRecyclerView(receivedItems);
+                        setupRecyclerView(receivedItems);
                     }
                     break;
 
@@ -77,7 +91,7 @@ public class ListActivity extends AppCompatActivity {
                         return;
                     }
 
-//                    ((RecyclerViewAdapter)mRecyclerView.getAdapter()).addNewItem(new AppInfo(packageName, name, "true", appIcon));
+                    ((RecyclerViewAdapter)mRecyclerView.getAdapter()).addNewItem(new AppInfo(packageName, name, "true", appIcon));
                     break;
 
                 case ON_PACKAGE_REMOVED:
@@ -89,18 +103,18 @@ public class ListActivity extends AppCompatActivity {
         }
     };
 
-//    private void setupRecyclerView(List<AppInfo> appItems) {
-//        mRecyclerView = findViewById(R.id.appRecyclerView);
-//
-//        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this);
-//        mRecyclerView.setLayoutManager(layoutManager);
-//
-//
-//        RecyclerView.Adapter adapter = new RecyclerViewAdapter(appItems);
-//        mRecyclerView.setAdapter(adapter);
-//
-//        mRecyclerView.getAdapter().notifyDataSetChanged();
-//    }
+    private void setupRecyclerView(List<AppInfo> appItems) {
+        mRecyclerView = findViewById(R.id.appRecyclerView);
+
+        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this);
+        mRecyclerView.setLayoutManager(layoutManager);
+
+
+        RecyclerView.Adapter adapter = new RecyclerViewAdapter(appItems);
+        mRecyclerView.setAdapter(adapter);
+
+        mRecyclerView.getAdapter().notifyDataSetChanged();
+    }
 
     @Override
     protected void onDestroy() {

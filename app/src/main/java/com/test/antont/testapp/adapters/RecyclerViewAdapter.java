@@ -1,7 +1,7 @@
 package com.test.antont.testapp.adapters;
 
 import android.content.Context;
-import android.database.sqlite.SQLiteDatabase;
+import android.os.AsyncTask;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,8 +11,8 @@ import android.widget.CompoundButton;
 import android.widget.ImageView;
 
 import com.test.antont.testapp.R;
-import com.test.antont.testapp.databases.DBHelper;
-import com.test.antont.testapp.models.AppInfo;
+import com.test.antont.testapp.databases.AppDatabase;
+import com.test.antont.testapp.databases.AppInfo;
 
 import java.util.List;
 
@@ -25,7 +25,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
 
     @Override
     public RecyclerViewAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.app_item, parent, false);
+        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_layout, parent, false);
         return new ViewHolder(v);
     }
 
@@ -34,7 +34,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         AppInfo item = mDataset.get(position);
 
         holder.mCheckBox.setText(item.getAppName());
-        holder.mCheckBox.setChecked(item.getStatus());
+        holder.mCheckBox.setChecked(Boolean.parseBoolean(item.getStatus()));
         holder.mImageView.setImageDrawable(item.getAppIcon());
         holder.mCheckBox.setOnCheckedChangeListener((compoundButton, b) -> onCheckedChanged(position, b, compoundButton));
     }
@@ -43,13 +43,10 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         if (!compoundButton.isPressed()) {
             return;
         }
-        AppInfo newItem = new AppInfo(mDataset.get(position).getAppIcon(), mDataset.get(position).getPackageName(), mDataset.get(position).getAppName(), status);
+        AppInfo newItem = new AppInfo(mDataset.get(position).getPackageName(), mDataset.get(position).getAppName(), status.toString(), mDataset.get(position).getAppIcon());
         mDataset.set(position, newItem);
 
-        DBHelper DBHelper = new DBHelper(compoundButton.getContext());
-        SQLiteDatabase dataBase = DBHelper.getWritableDatabase();
-        DBHelper.updateAppInfo(dataBase, newItem);
-        DBHelper.close();
+        new ChangeItemStatusAsync(compoundButton.getContext(), newItem).execute();
     }
 
     public void addNewItem(AppInfo item){
@@ -77,8 +74,24 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
 
         ViewHolder(View v) {
             super(v);
-            mCheckBox = v.findViewById(R.id.appItemCheckBox);
-            mImageView = v.findViewById(R.id.appIconImageView);
+            mCheckBox = v.findViewById(R.id.itemInfoCheckBox);
+            mImageView = v.findViewById(R.id.itemIconImageView);
+        }
+    }
+
+    private class ChangeItemStatusAsync extends AsyncTask<Void, Void, Void>{
+        private Context mContext;
+        private AppInfo mAppInfo;
+
+        ChangeItemStatusAsync(Context mContext, AppInfo appInfo){
+            this.mContext = mContext;
+            this.mAppInfo = appInfo;
+        }
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            AppDatabase.getInstance(mContext).appInfoDao().uodateAppItem(mAppInfo);
+            return null;
         }
     }
 }

@@ -2,20 +2,18 @@ package com.test.antont.testapp.services;
 
 
 import android.app.IntentService;
+import android.arch.persistence.room.RoomDatabase;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
-import android.database.sqlite.SQLiteDatabase;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.support.v4.content.LocalBroadcastManager;
 
 import com.test.antont.testapp.activities.ListActivity;
-import com.test.antont.testapp.databases.DBHelper;
+import com.test.antont.testapp.databases.AppDatabase;
+import com.test.antont.testapp.databases.AppInfo;
 import com.test.antont.testapp.enums.ActionType;
-import com.test.antont.testapp.models.AppInfo;
-import com.test.antont.testapp.models.AppStatus;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -23,8 +21,7 @@ import java.util.List;
 
 public class ApplicationsService extends IntentService {
 
-    private DBHelper mDBHelper;
-    private SQLiteDatabase mDatabase;
+    private RoomDatabase mDatabase;
 
     public ApplicationsService() {
         super("appService");
@@ -34,13 +31,12 @@ public class ApplicationsService extends IntentService {
     public void onCreate() {
         super.onCreate();
 
-        mDBHelper = new DBHelper(this);
-        mDatabase = mDBHelper.getWritableDatabase();
+        mDatabase = AppDatabase.getInstance(this);
     }
 
     @Override
     protected void onHandleIntent(Intent intent) {
-        List<AppInfo> mAppItems = getAppInfoList();
+        List<AppInfo> mAppItems = getActualPackagesNames();
 
         Intent localIntent = new Intent(ActionType.ON_ALL_ITEMS_RETURNED.name());
 
@@ -51,23 +47,23 @@ public class ApplicationsService extends IntentService {
         LocalBroadcastManager.getInstance(this).sendBroadcast(localIntent);
     }
 
-    private List<AppInfo> getAppInfoList() {
-        List<AppInfo> actualItemsList = getActualPackagesNames();
-        mDBHelper.writeAppInfoList(mDatabase, actualItemsList);
-
-        List<AppStatus> appStatusList = mDBHelper.readAppInfoList(mDatabase);
-
-        return actualItemsList;
-    }
-
     private List<AppInfo> getActualPackagesNames() {
         List<AppInfo> appInfoList = new ArrayList<>();
         List<PackageInfo> packs = getPackageManager().getInstalledPackages(0);
-        for(PackageInfo packageInfo: packs){
+        for (PackageInfo packageInfo : packs) {
             if (!isSystemPackage(packageInfo)) {
+                AppInfo itemFroDB = ((AppDatabase) mDatabase).appInfoDao().findItemByPackageName(packageInfo.packageName);
+
                 String appName = packageInfo.applicationInfo.loadLabel(getPackageManager()).toString();
-                Drawable icon = packageInfo.applicationInfo.loadIcon(getPackageManager());
-                appInfoList.add(new AppInfo(icon, packageInfo.packageName, appName, true));
+                Drawable appIcon = packageInfo.applicationInfo.loadIcon(getPackageManager());
+
+                if (itemFroDB != null) {
+                    appInfoList.add(new AppInfo(packageInfo.packageName, appName, itemFroDB.getStatus(), appIcon));
+                } else {
+                    AppInfo newAppInfo = new AppInfo(packageInfo.packageName, appName, "true", appIcon);
+                    ((AppDatabase) mDatabase).appInfoDao().insertAppItem(newAppInfo);
+                    appInfoList.add(newAppInfo);
+                }
             }
         }
         return appInfoList;
