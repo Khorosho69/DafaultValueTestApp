@@ -12,15 +12,19 @@ import org.jetbrains.annotations.NotNull;
 @Entity
 public class AppInfo {
 
+    private final static String PACKAGE_NAME_COLUMN = "package_name";
+    private final static String APP_NAME_COLUMN = "app_name";
+    private final static String ITEM_STATUS_COLUMN = "item_status";
+
     @PrimaryKey
     @NotNull
-    @ColumnInfo(name = "package_name")
+    @ColumnInfo(name = PACKAGE_NAME_COLUMN)
     private String  mPackageName;
 
-    @ColumnInfo(name = "app_name")
+    @ColumnInfo(name = APP_NAME_COLUMN)
     private String mAppName;
 
-    @ColumnInfo(name = "item_status")
+    @ColumnInfo(name = ITEM_STATUS_COLUMN)
     private String mStatus;
     @Ignore
     private Drawable mAppIcon;

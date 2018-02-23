@@ -8,6 +8,8 @@ import android.content.Context;
 @Database(entities = {AppInfo.class}, version = 1)
 public abstract class AppDatabase extends RoomDatabase {
 
+    private static final String DATABASE_NAME = "AppDatabase.db";
+
     private static AppDatabase INSTANCE;
 
     public abstract AppInfoDao appInfoDao();
@@ -17,7 +19,7 @@ public abstract class AppDatabase extends RoomDatabase {
     public static AppDatabase getInstance(Context context) {
         synchronized (sLock) {
             if (INSTANCE == null) {
-                INSTANCE = Room.databaseBuilder(context.getApplicationContext(), AppDatabase.class, "AppDatabase.db")
+                INSTANCE = Room.databaseBuilder(context.getApplicationContext(), AppDatabase.class, DATABASE_NAME)
                         .build();
             }
             return INSTANCE;

@@ -7,12 +7,10 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 
 import com.test.antont.testapp.R;
 import com.test.antont.testapp.adapters.RecyclerViewAdapter;
 import com.test.antont.testapp.databases.AppInfo;
-import com.test.antont.testapp.eventbus.GlobalBus;
 import com.test.antont.testapp.eventbus.OnAppInstalledEvent;
 import com.test.antont.testapp.eventbus.OnAppRemovedEvent;
 import com.test.antont.testapp.eventbus.OnItemListReturned;
@@ -20,6 +18,7 @@ import com.test.antont.testapp.receivers.ApplicationsReceiver;
 import com.test.antont.testapp.services.ApplicationsService;
 import com.test.antont.testapp.view_models.AppInfoViewModel;
 
+import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
@@ -37,9 +36,9 @@ public class ListActivity extends AppCompatActivity {
 
         mViewModel = ViewModelProviders.of(this).get(AppInfoViewModel.class);
 
-        GlobalBus.getBus().register(this);
+        EventBus.getDefault().register(this);
 
-        if (mViewModel.getAppInfo().size() == 0) {
+        if (mViewModel.getAppInfo().isEmpty()) {
             startService(new Intent(this, ApplicationsService.class));
         } else{
             setupRecyclerView(mViewModel.getAppInfo());
@@ -91,6 +90,6 @@ public class ListActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        GlobalBus.getBus().unregister(this);
+        EventBus.getDefault().unregister(this);
     }
 }

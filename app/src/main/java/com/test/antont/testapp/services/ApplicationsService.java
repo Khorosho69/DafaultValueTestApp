@@ -10,8 +10,9 @@ import android.graphics.drawable.Drawable;
 
 import com.test.antont.testapp.databases.AppDatabase;
 import com.test.antont.testapp.databases.AppInfo;
-import com.test.antont.testapp.eventbus.GlobalBus;
 import com.test.antont.testapp.eventbus.OnItemListReturned;
+
+import org.greenrobot.eventbus.EventBus;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,7 +32,7 @@ public class ApplicationsService extends IntentService {
     protected void onHandleIntent(Intent intent) {
         List<AppInfo> mAppItems = getActualPackagesNames();
 
-        GlobalBus.getBus().post(new OnItemListReturned(mAppItems));
+        EventBus.getDefault().post(new OnItemListReturned(mAppItems));
     }
 
     private List<AppInfo> getActualPackagesNames() {
