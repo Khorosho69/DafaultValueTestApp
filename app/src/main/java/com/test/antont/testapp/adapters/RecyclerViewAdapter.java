@@ -19,6 +19,7 @@ import java.util.List;
 public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.ViewHolder> {
 
     private List<AppInfo> mDataset;
+
     public RecyclerViewAdapter(List<AppInfo> mDataset) {
         this.mDataset = mDataset;
     }
@@ -49,16 +50,18 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         new ChangeItemStatusAsync(compoundButton.getContext(), newItem).execute();
     }
 
-    public void addNewItem(AppInfo item){
+    public void addNewItem(AppInfo item) {
         mDataset.add(item);
         notifyItemInserted(getItemCount());
     }
 
-    public void removeItemByPackageName(String packageName){
-        for (AppInfo item: mDataset) {
-            if(item.getPackageName().equals(packageName)){
-                mDataset.remove(mDataset.indexOf(item));
-                notifyItemRemoved(mDataset.indexOf(item));
+    public void removeItemByPackageName(String packageName) {
+        for (AppInfo item : mDataset) {
+            if (item.getPackageName().equals(packageName)) {
+
+                int index = mDataset.indexOf(item);
+                notifyItemRemoved(index);
+                mDataset.remove(index);
             }
         }
     }
@@ -79,18 +82,18 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         }
     }
 
-    private class ChangeItemStatusAsync extends AsyncTask<Void, Void, Void>{
+    private class ChangeItemStatusAsync extends AsyncTask<Void, Void, Void> {
         private Context mContext;
         private AppInfo mAppInfo;
 
-        ChangeItemStatusAsync(Context mContext, AppInfo appInfo){
+        ChangeItemStatusAsync(Context mContext, AppInfo appInfo) {
             this.mContext = mContext;
             this.mAppInfo = appInfo;
         }
 
         @Override
         protected Void doInBackground(Void... voids) {
-            AppDatabase.getInstance(mContext).appInfoDao().uodateAppItem(mAppInfo);
+            AppDatabase.getInstance(mContext).appInfoDao().updateAppItem(mAppInfo);
             return null;
         }
     }

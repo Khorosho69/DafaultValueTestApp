@@ -7,13 +7,11 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
-import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
-import com.test.antont.testapp.activities.ListActivity;
 import com.test.antont.testapp.databases.AppDatabase;
 import com.test.antont.testapp.databases.AppInfo;
-import com.test.antont.testapp.enums.ActionType;
+import com.test.antont.testapp.eventbus.*;
 
 import java.util.Objects;
 
@@ -23,24 +21,10 @@ public class ApplicationsReceiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         Log.d("zlo", "onReceive: ");
 
-        new CallToBDAsync(context, intent).execute();
-    }
+        String packageName = intent.getData().getEncodedSchemeSpecificPart();
 
-    private class CallToBDAsync extends AsyncTask<Void, Void, Void> {
-
-        private Context mContext;
-        private Intent mIntent;
-
-        CallToBDAsync(Context mContext, Intent mIntent) {
-            this.mContext = mContext;
-            this.mIntent = mIntent;
-        }
-
-        @Override
-        protected Void doInBackground(Void... voids) {
-            String packageName = mIntent.getData().getEncodedSchemeSpecificPart();
-
-            PackageManager packageManager = mContext.getPackageManager();
+        if (Objects.equals(intent.getAction(), Intent.ACTION_PACKAGE_ADDED)) {
+            PackageManager packageManager = context.getPackageManager();
             Drawable appIcon;
             String appName;
             try {
@@ -48,27 +32,62 @@ public class ApplicationsReceiver extends BroadcastReceiver {
                 appName = packageInfo.applicationInfo.loadLabel(packageManager).toString();
                 appIcon = packageInfo.applicationInfo.loadIcon(packageManager);
             } catch (PackageManager.NameNotFoundException e) {
-                return  null;
+                return;
             }
-            if (Objects.equals(mIntent.getAction(), Intent.ACTION_PACKAGE_ADDED)) {
 
-                Intent localIntent = new Intent(ActionType.ON_PACKAGE_ADDED.name());
-                localIntent.putExtra(ListActivity.EXTRAS_NEW_ITEM_PACKAGE, packageName);
-                localIntent.putExtra(ListActivity.EXTRAS_NEW_ITEM_NAME, appName);
+//                Intent localIntent = new Intent(ActionType.ON_PACKAGE_ADDED.name());
+//                localIntent.putExtra(ListActivity.EXTRAS_NEW_ITEM_PACKAGE, packageName);
+//                localIntent.putExtra(ListActivity.EXTRAS_NEW_ITEM_NAME, appName);
+//
+//                LocalBroadcastManager.getInstance(mContext).sendBroadcast(localIntent);
 
-                LocalBroadcastManager.getInstance(mContext).sendBroadcast(localIntent);
+            AppInfo installedApp = new AppInfo(packageName, appName, "true", appIcon);
 
-                AppInfo installedApp = new AppInfo(packageName, appName, "true", appIcon);
+            GlobalBus.getBus().post(new OnAppInstalledEvent(installedApp));
 
-                AppDatabase.getInstance(mContext).appInfoDao().insertAppItem(installedApp);
-            } else if (Objects.equals(mIntent.getAction(), Intent.ACTION_PACKAGE_REMOVED)) {
-                Intent localIntent = new Intent(ActionType.ON_PACKAGE_REMOVED.name());
-                localIntent.putExtra(ListActivity.EXTRAS_REMOVE_ITEM, packageName);
+//            AppDatabase.getInstance(context).appInfoDao().insertAppItem(installedApp);
+            new InsertToDBAsync(context).execute(installedApp);
+        } else if (Objects.equals(intent.getAction(), Intent.ACTION_PACKAGE_REMOVED)) {
+//                Intent localIntent = new Intent(ActionType.ON_PACKAGE_REMOVED.name());
+//                localIntent.putExtra(ListActivity.EXTRAS_REMOVE_ITEM, packageName);
+//
+//                LocalBroadcastManager.getInstance(mContext).sendBroadcast(localIntent);
 
-                LocalBroadcastManager.getInstance(mContext).sendBroadcast(localIntent);
+            GlobalBus.getBus().post(new OnAppRemovedEvent(packageName));
 
-                AppDatabase.getInstance(mContext).appInfoDao().deleteItemByPackageName(packageName);
-            }
+//            AppDatabase.getInstance(context).appInfoDao().deleteItemByPackageName(packageName);
+            new RemoveFromDBAsync(context).execute(packageName);
+        }
+
+//        new CallToBDAsync(context, intent).execute();
+    }
+
+    private class InsertToDBAsync extends AsyncTask<AppInfo, Void, Void> {
+
+        private Context mContext;
+
+        InsertToDBAsync(Context mContext) {
+            this.mContext = mContext;
+        }
+
+        @Override
+        protected Void doInBackground(AppInfo... appInfos) {
+            AppDatabase.getInstance(mContext).appInfoDao().insertAppItem(appInfos[0]);
+            return null;
+        }
+    }
+
+    private class RemoveFromDBAsync extends AsyncTask<String, Void, Void> {
+
+        private Context mContext;
+
+        private RemoveFromDBAsync(Context mContext) {
+            this.mContext = mContext;
+        }
+
+        @Override
+        protected Void doInBackground(String... strings) {
+            AppDatabase.getInstance(mContext).appInfoDao().deleteItemByPackageName(strings[0]);
             return null;
         }
     }

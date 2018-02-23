@@ -7,21 +7,16 @@ import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.graphics.drawable.Drawable;
-import android.os.Bundle;
-import android.support.v4.content.LocalBroadcastManager;
 
-import com.test.antont.testapp.activities.ListActivity;
 import com.test.antont.testapp.databases.AppDatabase;
 import com.test.antont.testapp.databases.AppInfo;
-import com.test.antont.testapp.enums.ActionType;
+import com.test.antont.testapp.eventbus.GlobalBus;
+import com.test.antont.testapp.eventbus.OnItemListReturned;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 public class ApplicationsService extends IntentService {
-
-    private RoomDatabase mDatabase;
 
     public ApplicationsService() {
         super("appService");
@@ -30,24 +25,26 @@ public class ApplicationsService extends IntentService {
     @Override
     public void onCreate() {
         super.onCreate();
-
-        mDatabase = AppDatabase.getInstance(this);
     }
 
     @Override
     protected void onHandleIntent(Intent intent) {
         List<AppInfo> mAppItems = getActualPackagesNames();
 
-        Intent localIntent = new Intent(ActionType.ON_ALL_ITEMS_RETURNED.name());
+        GlobalBus.getBus().post(new OnItemListReturned(mAppItems));
 
-        Bundle bundle = new Bundle();
-        bundle.putSerializable(ListActivity.EXTRAS_SERIALIZED_APP_LIST, (Serializable) mAppItems);
-        localIntent.putExtras(bundle);
-
-        LocalBroadcastManager.getInstance(this).sendBroadcast(localIntent);
+//        Intent localIntent = new Intent(ActionType.ON_ALL_ITEMS_RETURNED.name());
+//
+//        Bundle bundle = new Bundle();
+//        bundle.putSerializable(ListActivity.EXTRAS_SERIALIZED_APP_LIST, (Serializable) mAppItems);
+//        localIntent.putExtras(bundle);
+//
+//        LocalBroadcastManager.getInstance(this).sendBroadcast(localIntent);
     }
 
     private List<AppInfo> getActualPackagesNames() {
+        RoomDatabase mDatabase = AppDatabase.getInstance(this);
+
         List<AppInfo> appInfoList = new ArrayList<>();
         List<PackageInfo> packs = getPackageManager().getInstalledPackages(0);
         for (PackageInfo packageInfo : packs) {
