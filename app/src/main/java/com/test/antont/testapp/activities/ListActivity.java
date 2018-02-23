@@ -20,6 +20,7 @@ import com.test.antont.testapp.enums.ActionType;
 import com.test.antont.testapp.receivers.ApplicationsReceiver;
 import com.test.antont.testapp.services.ApplicationsService;
 
+import java.io.Serializable;
 import java.util.List;
 
 public class ListActivity extends AppCompatActivity {
@@ -37,9 +38,23 @@ public class ListActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_list);
 
-        startService(new Intent(this, ApplicationsService.class));
-        setupLocalBroadcastManager();
+        if (savedInstanceState == null) {
+            startService(new Intent(this, ApplicationsService.class));
+            setupLocalBroadcastManager();
+        } else {
+            List<AppInfo> items = (List<AppInfo>) savedInstanceState.getSerializable("recycler_view_data");
+            if (items != null) {
+                setupRecyclerView(items);
+            }
+        }
         setupAppReceiver();
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        outState.putSerializable("recycler_view_data", (Serializable) ((RecyclerViewAdapter) mRecyclerView.getAdapter()).getmDataset());
     }
 
     private void setupLocalBroadcastManager() {
@@ -91,12 +106,12 @@ public class ListActivity extends AppCompatActivity {
                         return;
                     }
 
-                    ((RecyclerViewAdapter)mRecyclerView.getAdapter()).addNewItem(new AppInfo(packageName, name, "true", appIcon));
+                    ((RecyclerViewAdapter) mRecyclerView.getAdapter()).addNewItem(new AppInfo(packageName, name, "true", appIcon));
                     break;
 
                 case ON_PACKAGE_REMOVED:
                     packageName = intent.getStringExtra(EXTRAS_REMOVE_ITEM);
-                    ((RecyclerViewAdapter)mRecyclerView.getAdapter()).removeItemByPackageName(packageName);
+                    ((RecyclerViewAdapter) mRecyclerView.getAdapter()).removeItemByPackageName(packageName);
                     break;
             }
 

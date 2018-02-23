@@ -19,6 +19,7 @@ import java.util.List;
 public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.ViewHolder> {
 
     private List<AppInfo> mDataset;
+
     public RecyclerViewAdapter(List<AppInfo> mDataset) {
         this.mDataset = mDataset;
     }
@@ -49,14 +50,14 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         new ChangeItemStatusAsync(compoundButton.getContext(), newItem).execute();
     }
 
-    public void addNewItem(AppInfo item){
+    public void addNewItem(AppInfo item) {
         mDataset.add(item);
         notifyItemInserted(getItemCount());
     }
 
-    public void removeItemByPackageName(String packageName){
-        for (AppInfo item: mDataset) {
-            if(item.getPackageName().equals(packageName)){
+    public void removeItemByPackageName(String packageName) {
+        for (AppInfo item : mDataset) {
+            if (item.getPackageName().equals(packageName)) {
                 mDataset.remove(mDataset.indexOf(item));
                 notifyItemRemoved(mDataset.indexOf(item));
             }
@@ -69,6 +70,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {
+
         CheckBox mCheckBox;
         ImageView mImageView;
 
@@ -77,13 +79,18 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
             mCheckBox = v.findViewById(R.id.itemInfoCheckBox);
             mImageView = v.findViewById(R.id.itemIconImageView);
         }
+
     }
 
-    private class ChangeItemStatusAsync extends AsyncTask<Void, Void, Void>{
+    public List<AppInfo> getmDataset() {
+        return mDataset;
+    }
+
+    private class ChangeItemStatusAsync extends AsyncTask<Void, Void, Void> {
         private Context mContext;
         private AppInfo mAppInfo;
 
-        ChangeItemStatusAsync(Context mContext, AppInfo appInfo){
+        ChangeItemStatusAsync(Context mContext, AppInfo appInfo) {
             this.mContext = mContext;
             this.mAppInfo = appInfo;
         }
