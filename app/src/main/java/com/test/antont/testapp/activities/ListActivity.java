@@ -60,22 +60,18 @@ public class ListActivity extends AppCompatActivity {
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void messageEventOnListReturned(OnItemListReturned event) {
-        Log.d("yay", "List returned");
         mViewModel.addAppItems(event.getAppInfolist());
         setupRecyclerView(mViewModel.getAppInfo());
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void messageEventOnAppInstaled(OnAppInstalledEvent event) {
-        Log.d("yay", "Installed - " + event.getAppInfo().getPackageName());
-
         mViewModel.addAppInfo(event.getAppInfo());
         mRecyclerView.getAdapter().notifyItemInserted(mRecyclerView.getAdapter().getItemCount());
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void messageEventOnAppRemoved(OnAppRemovedEvent event) {
-        Log.d("yay", "Removed - " + event.getPackageName());
         ((RecyclerViewAdapter) mRecyclerView.getAdapter()).notifyItemRemovedByPackageName(event.getPackageName());
         mViewModel.removeItemByPackageName(event.getPackageName());
     }
@@ -86,7 +82,6 @@ public class ListActivity extends AppCompatActivity {
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this);
         mRecyclerView.setLayoutManager(layoutManager);
 
-
         RecyclerView.Adapter adapter = new RecyclerViewAdapter(appItems);
         mRecyclerView.setAdapter(adapter);
 
@@ -96,7 +91,6 @@ public class ListActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-
         GlobalBus.getBus().unregister(this);
     }
 }

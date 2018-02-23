@@ -35,31 +35,15 @@ public class ApplicationsReceiver extends BroadcastReceiver {
                 return;
             }
 
-//                Intent localIntent = new Intent(ActionType.ON_PACKAGE_ADDED.name());
-//                localIntent.putExtra(ListActivity.EXTRAS_NEW_ITEM_PACKAGE, packageName);
-//                localIntent.putExtra(ListActivity.EXTRAS_NEW_ITEM_NAME, appName);
-//
-//                LocalBroadcastManager.getInstance(mContext).sendBroadcast(localIntent);
-
             AppInfo installedApp = new AppInfo(packageName, appName, "true", appIcon);
 
             GlobalBus.getBus().post(new OnAppInstalledEvent(installedApp));
 
-//            AppDatabase.getInstance(context).appInfoDao().insertAppItem(installedApp);
             new InsertToDBAsync(context).execute(installedApp);
         } else if (Objects.equals(intent.getAction(), Intent.ACTION_PACKAGE_REMOVED)) {
-//                Intent localIntent = new Intent(ActionType.ON_PACKAGE_REMOVED.name());
-//                localIntent.putExtra(ListActivity.EXTRAS_REMOVE_ITEM, packageName);
-//
-//                LocalBroadcastManager.getInstance(mContext).sendBroadcast(localIntent);
-
             GlobalBus.getBus().post(new OnAppRemovedEvent(packageName));
-
-//            AppDatabase.getInstance(context).appInfoDao().deleteItemByPackageName(packageName);
             new RemoveFromDBAsync(context).execute(packageName);
         }
-
-//        new CallToBDAsync(context, intent).execute();
     }
 
     private class InsertToDBAsync extends AsyncTask<AppInfo, Void, Void> {

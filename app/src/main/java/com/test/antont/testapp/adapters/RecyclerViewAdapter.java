@@ -50,32 +50,13 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         new ChangeItemStatusAsync(compoundButton.getContext(), newItem).execute();
     }
 
-    public void addNewItem(AppInfo item) {
-        mDataset.add(item);
-        notifyItemInserted(getItemCount());
-    }
-
-    public void removeItemByPackageName(String packageName) {
-        for (AppInfo item : mDataset) {
-            if (item.getPackageName().equals(packageName)) {
-
-                int index = mDataset.indexOf(item);
-                notifyItemRemoved(index);
-                mDataset.remove(index);
-            }
-        }
-    }
-
     public void notifyItemRemovedByPackageName(String packageName){
         for (AppInfo item : mDataset) {
             if (item.getPackageName().equals(packageName)) {
-//                int index = mDataset.indexOf(item);
                 notifyItemRemoved(mDataset.indexOf(item));
-//                mDataset.remove(index);
             }
         }
     }
-
 
     @Override
     public int getItemCount() {
