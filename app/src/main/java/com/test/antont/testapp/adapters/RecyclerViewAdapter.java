@@ -66,6 +66,17 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         }
     }
 
+    public void notifyItemRemovedByPackageName(String packageName){
+        for (AppInfo item : mDataset) {
+            if (item.getPackageName().equals(packageName)) {
+//                int index = mDataset.indexOf(item);
+                notifyItemRemoved(mDataset.indexOf(item));
+//                mDataset.remove(index);
+            }
+        }
+    }
+
+
     @Override
     public int getItemCount() {
         return mDataset.size();

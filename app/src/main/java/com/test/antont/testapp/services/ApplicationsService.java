@@ -32,14 +32,6 @@ public class ApplicationsService extends IntentService {
         List<AppInfo> mAppItems = getActualPackagesNames();
 
         GlobalBus.getBus().post(new OnItemListReturned(mAppItems));
-
-//        Intent localIntent = new Intent(ActionType.ON_ALL_ITEMS_RETURNED.name());
-//
-//        Bundle bundle = new Bundle();
-//        bundle.putSerializable(ListActivity.EXTRAS_SERIALIZED_APP_LIST, (Serializable) mAppItems);
-//        localIntent.putExtras(bundle);
-//
-//        LocalBroadcastManager.getInstance(this).sendBroadcast(localIntent);
     }
 
     private List<AppInfo> getActualPackagesNames() {

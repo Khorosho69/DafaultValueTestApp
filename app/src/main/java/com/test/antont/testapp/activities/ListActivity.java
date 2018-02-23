@@ -1,14 +1,9 @@
 package com.test.antont.testapp.activities;
 
-import android.content.BroadcastReceiver;
-import android.content.Context;
+import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -17,13 +12,13 @@ import android.util.Log;
 import com.test.antont.testapp.R;
 import com.test.antont.testapp.adapters.RecyclerViewAdapter;
 import com.test.antont.testapp.databases.AppInfo;
-import com.test.antont.testapp.enums.ActionType;
 import com.test.antont.testapp.eventbus.GlobalBus;
 import com.test.antont.testapp.eventbus.OnAppInstalledEvent;
 import com.test.antont.testapp.eventbus.OnAppRemovedEvent;
 import com.test.antont.testapp.eventbus.OnItemListReturned;
 import com.test.antont.testapp.receivers.ApplicationsReceiver;
 import com.test.antont.testapp.services.ApplicationsService;
+import com.test.antont.testapp.view_models.AppInfoViewModel;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -33,15 +28,22 @@ import java.util.List;
 public class ListActivity extends AppCompatActivity {
 
     private RecyclerView mRecyclerView;
+    private AppInfoViewModel mViewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_list);
 
+        mViewModel = ViewModelProviders.of(this).get(AppInfoViewModel.class);
+
         GlobalBus.getBus().register(this);
 
-        startService(new Intent(this, ApplicationsService.class));
+        if (mViewModel.getAppInfo().size() == 0) {
+            startService(new Intent(this, ApplicationsService.class));
+        } else{
+            setupRecyclerView(mViewModel.getAppInfo());
+        }
         setupAppReceiver();
     }
 
@@ -59,19 +61,23 @@ public class ListActivity extends AppCompatActivity {
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void messageEventOnListReturned(OnItemListReturned event) {
         Log.d("yay", "List returned");
-        setupRecyclerView(event.getAppInfolist());
+        mViewModel.addAppItems(event.getAppInfolist());
+        setupRecyclerView(mViewModel.getAppInfo());
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void messageEventOnAppInstaled(OnAppInstalledEvent event) {
         Log.d("yay", "Installed - " + event.getAppInfo().getPackageName());
-        ((RecyclerViewAdapter) mRecyclerView.getAdapter()).addNewItem(event.getAppInfo());
+
+        mViewModel.addAppInfo(event.getAppInfo());
+        mRecyclerView.getAdapter().notifyItemInserted(mRecyclerView.getAdapter().getItemCount());
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void messageEventOnAppRemoved(OnAppRemovedEvent event) {
         Log.d("yay", "Removed - " + event.getPackageName());
-        ((RecyclerViewAdapter) mRecyclerView.getAdapter()).removeItemByPackageName(event.getPackageName());
+        ((RecyclerViewAdapter) mRecyclerView.getAdapter()).notifyItemRemovedByPackageName(event.getPackageName());
+        mViewModel.removeItemByPackageName(event.getPackageName());
     }
 
     private void setupRecyclerView(List<AppInfo> appItems) {

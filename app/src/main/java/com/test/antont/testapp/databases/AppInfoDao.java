@@ -21,5 +21,5 @@ public interface AppInfoDao {
     void insertAppItem(AppInfo item);
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    void  uodateAppItem(AppInfo item);
+    void updateAppItem(AppInfo item);
 }
