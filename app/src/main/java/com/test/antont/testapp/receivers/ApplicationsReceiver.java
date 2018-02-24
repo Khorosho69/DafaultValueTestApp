@@ -8,7 +8,6 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
-import android.util.Log;
 
 import com.test.antont.testapp.databases.AppDatabase;
 import com.test.antont.testapp.databases.AppInfo;
@@ -25,7 +24,7 @@ public class ApplicationsReceiver extends BroadcastReceiver {
         RoomDatabase database = AppDatabase.getInstance(context);
         PackageManager packageManager = context.getPackageManager();
 
-        new CallToDBAsync(intent, packageManager, database);
+        new CallToDBAsync(intent, packageManager, database).execute();
     }
 
     private class CallToDBAsync extends AsyncTask<Void, Void, Void> {
@@ -43,7 +42,6 @@ public class ApplicationsReceiver extends BroadcastReceiver {
 
         @Override
         protected Void doInBackground(Void... voids) {
-
             String packageName = mIntent.getData().getEncodedSchemeSpecificPart();
 
             if (Objects.equals(mIntent.getAction(), Intent.ACTION_PACKAGE_ADDED)) {
@@ -61,6 +59,7 @@ public class ApplicationsReceiver extends BroadcastReceiver {
             super.onPostExecute(aVoid);
             if (isAppInstalled) {
                 AppInfo appInfo = getAppInfoFromIntent();
+
                 EventBus.getDefault().post(new OnAppInstalledEvent(appInfo));
             } else {
                 EventBus.getDefault().post(new OnAppRemovedEvent(mIntent.getData().getEncodedSchemeSpecificPart()));

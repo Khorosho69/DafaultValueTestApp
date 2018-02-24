@@ -8,6 +8,7 @@
     android:layout_gravity="center"
     card_view:cardCornerRadius="5dp"
     card_view:cardElevation="1dp"
+    android:layout_margin="4dp"
     card_view:cardUseCompatPadding="true">
 
     <android.support.constraint.ConstraintLayout
@@ -20,6 +21,7 @@
             android:layout_height="50dp"
             android:layout_margin="5dp"
             app:cardCornerRadius="8dp"
+            app:cardElevation="0dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/itemInfoCheckBox"
             app:layout_constraintStart_toStartOf="parent"
@@ -30,7 +32,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:scaleType="centerCrop"
-                android:src="@mipmap/ic_launcher" />
+                android:src="@mipmap/ic_launcher"
+                android:contentDescription="@string/item_layout_application_icon_deccription" />
         </android.support.v7.widget.CardView>
 
         <CheckBox

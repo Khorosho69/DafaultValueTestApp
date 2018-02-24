@@ -1,6 +1,5 @@
 package com.test.antont.testapp.services;
 
-
 import android.app.IntentService;
 import android.arch.persistence.room.RoomDatabase;
 import android.content.Intent;
