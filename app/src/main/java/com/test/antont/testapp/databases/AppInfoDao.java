@@ -17,9 +17,6 @@ public interface AppInfoDao {
     @Query("DELETE FROM appinfo WHERE package_name LIKE :packageName")
     void deleteItemByPackageName(String packageName);
 
-    @Insert
-    void insertAppItem(AppInfo item);
-
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    void  uodateAppItem(AppInfo item);
+    void insertAppItem(AppInfo item);
 }

@@ -31,6 +31,8 @@ public class ListActivity extends AppCompatActivity {
 
     public static final String EXTRAS_SERIALIZED_APP_LIST = "SERIALIZED_LIST";
 
+    public static final String SERIALIZED_INSTANCE_APP_INFO = "RECYCLER_VIEW_DATA";
+
     private RecyclerView mRecyclerView;
 
     @Override
@@ -42,7 +44,7 @@ public class ListActivity extends AppCompatActivity {
             startService(new Intent(this, ApplicationsService.class));
             setupLocalBroadcastManager();
         } else {
-            List<AppInfo> items = (List<AppInfo>) savedInstanceState.getSerializable("recycler_view_data");
+            List<AppInfo> items = (List<AppInfo>) savedInstanceState.getSerializable(SERIALIZED_INSTANCE_APP_INFO);
             if (items != null) {
                 setupRecyclerView(items);
             }
@@ -54,7 +56,11 @@ public class ListActivity extends AppCompatActivity {
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
 
-        outState.putSerializable("recycler_view_data", (Serializable) ((RecyclerViewAdapter) mRecyclerView.getAdapter()).getmDataset());
+        List<AppInfo> infos = ((RecyclerViewAdapter) mRecyclerView.getAdapter()).getDataset();
+
+        // Serialization broke, I do not know why
+        // Maybe because I'm trying to serialize an AppInfo object that is part of the Room
+        outState.putSerializable(SERIALIZED_INSTANCE_APP_INFO, (Serializable) infos);
     }
 
     private void setupLocalBroadcastManager() {
@@ -114,7 +120,6 @@ public class ListActivity extends AppCompatActivity {
                     ((RecyclerViewAdapter) mRecyclerView.getAdapter()).removeItemByPackageName(packageName);
                     break;
             }
-
         }
     };
 

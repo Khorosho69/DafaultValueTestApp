@@ -1,6 +1,6 @@
 package com.test.antont.testapp.adapters;
 
-import android.content.Context;
+import android.arch.persistence.room.RoomDatabase;
 import android.os.AsyncTask;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -47,7 +47,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         AppInfo newItem = new AppInfo(mDataset.get(position).getPackageName(), mDataset.get(position).getAppName(), status.toString(), mDataset.get(position).getAppIcon());
         mDataset.set(position, newItem);
 
-        new ChangeItemStatusAsync(compoundButton.getContext(), newItem).execute();
+        new ChangeItemStatusAsync(AppDatabase.getInstance(compoundButton.getContext())).execute(newItem);
     }
 
     public void addNewItem(AppInfo item) {
@@ -72,8 +72,8 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
     static class ViewHolder extends RecyclerView.ViewHolder {
 
         CheckBox mCheckBox;
-        ImageView mImageView;
 
+        ImageView mImageView;
         ViewHolder(View v) {
             super(v);
             mCheckBox = v.findViewById(R.id.itemInfoCheckBox);
@@ -82,22 +82,20 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
 
     }
 
-    public List<AppInfo> getmDataset() {
+    public List<AppInfo> getDataset() {
         return mDataset;
     }
 
-    private class ChangeItemStatusAsync extends AsyncTask<Void, Void, Void> {
-        private Context mContext;
-        private AppInfo mAppInfo;
+    private class ChangeItemStatusAsync extends AsyncTask<AppInfo, Void, Void> {
+        private RoomDatabase mDatabase;
 
-        ChangeItemStatusAsync(Context mContext, AppInfo appInfo) {
-            this.mContext = mContext;
-            this.mAppInfo = appInfo;
+        ChangeItemStatusAsync(RoomDatabase database) {
+            mDatabase = database;
         }
 
         @Override
-        protected Void doInBackground(Void... voids) {
-            AppDatabase.getInstance(mContext).appInfoDao().uodateAppItem(mAppInfo);
+        protected Void doInBackground(AppInfo... appInfos) {
+            ((AppDatabase) mDatabase).appInfoDao().insertAppItem(appInfos[0]);
             return null;
         }
     }
